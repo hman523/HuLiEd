@@ -1,3 +1,9 @@
+/**
+ * Author: Stephen Hunter Barbella (hman523)
+ * Date: 1/23/19
+ * Licence: MIT
+ */
+
 #include <iostream>
 #include <vector>
 #include <map>
@@ -5,21 +11,49 @@
 #include <fstream>
 #include <algorithm>
 
-
+//Global variables 
+//ENUM: Mode
+//Essentially the state you are in
+//Modes: read, write, append, delete
 enum Mode {r, w, a, d};
+//modemap essentially maps the modes to strings that they are equivelent to
 std::map<std::string, Mode> modemap;
+//command list is where all the lines you write are held
 std::map<uint32_t, std::string> commandList;
+//filename: the name of the file you ae editing
 std::string filename;
 
+
+//Methods
+
+//Interpret: gets the input, parses it, and executes the command
 void interpret(std::string words, Mode * mode);
+
+//checkValidInput: makes sure you only have one command line arg
 void checkValidInputs(int argcount);
+
+//Split: splits the string into the command and the parameter
 std::vector<std::string> split(std::string words);
+
+//setupmap: Sets up the mode map and populates it
 void setupmap();
+
+//isNumber: returns if the string is a number or not
 bool isNumber(std::string s);
+
+//writetofile: writes the contents of command list to the file
 void writetofile();
+
+//printcontents: prints the contents of command list
 void printcontents();
+
+//strtoint: converts a string that is a number into a uint32_t
 uint32_t strtoint(std::string s);
+
+//populatecommandlist: fills the command list with what is in the file already
 void populatecommandlist();
+
+
 
 int main(int argc, char *argv[]) {
     std::cout << "hulied v0.9" << std::endl;
@@ -27,8 +61,10 @@ int main(int argc, char *argv[]) {
     setupmap();
     filename = argv[1];
     Mode * m = new Mode;
+    //default mode is read
     * m = r;
     populatecommandlist();
+    //interpretation loop
     while(true){
         std::cout << ">";
         std::string input;
@@ -46,24 +82,29 @@ void checkValidInputs(int argcount){
 }
 
 void interpret(std::string words, Mode * mode){
+    //for the exiting of the program
     if(words == "q" || words == "quit"){
         exit(0);
     }
 
+    //for empty string edge condition
     if(words == ""){
         return;
     }
 
+    //saves the contents of the map to the file
     if(words == "save"){
         writetofile();
         return;
     }
 
+    //prints all of the lines
     if(words == "print"){
         printcontents();
         return;
     }
 
+    //prints the help statement
     if(words == "help"){
         std::cout << "Welcome to Hunter's Line Editor, or hulied (pronounced who lied).\n"
         << "There are 4 modes available: read(r), write(w), append(a), or delete(d).\n"
@@ -78,8 +119,10 @@ void interpret(std::string words, Mode * mode){
         return;
     }
 
+    //Now we split the input into command and parameter
     std::vector<std::string> command = split(words);
 
+    //this is used when we want to change the mode
     if(command[0] == "mode"){
         if(isNumber(command[1])){
             //*mode = command[1];
@@ -92,11 +135,13 @@ void interpret(std::string words, Mode * mode){
         return;
     }
 
+    //this is used when inserting a line in append mode
     if(*mode == a && isNumber(command[0])){
         commandList.insert(std::pair<uint32_t, std::string>(strtoint(command[0]), command[1]));
         return;
     }
 
+    //This is used when writing a line while in write mode
     if(*mode == w && isNumber(command[0])){
         uint32_t index = strtoint(command[0]);
         if(commandList.count(index) != 0)
@@ -105,6 +150,7 @@ void interpret(std::string words, Mode * mode){
         return;
     }
 
+    //this is used for deleting
     if(*mode == d && command[0] == "delete"){
         if(isNumber(command[1])){
             uint32_t index = strtoint(command[1]);
@@ -114,6 +160,7 @@ void interpret(std::string words, Mode * mode){
         return;
     }
 
+    //this is for printing either 1 or a range of lines
     if(command[0] == "print"){
         int firstspace = command[1].find(' ');
         if(firstspace == -1){
@@ -143,6 +190,7 @@ void interpret(std::string words, Mode * mode){
 
 }
 
+//simple method for spliting the command and its parameter
 std::vector<std::string> split(std::string words){
     int firstspace = words.find(' ');
     std::vector<std::string> temp;
@@ -156,6 +204,7 @@ std::vector<std::string> split(std::string words){
     return temp;
 }
 
+//maps a string to the enum that it represents
 void setupmap(){
     modemap.insert(std::pair<std::string, Mode>("r", r));
     modemap.insert(std::pair<std::string, Mode>("w", w));
@@ -163,12 +212,14 @@ void setupmap(){
     modemap.insert(std::pair<std::string, Mode>("d", d));
 }
 
+//simple function to test if this string is a number
 bool isNumber(std::string s){
     return !s.empty() && std::find_if(s.begin(), s.end(), [](char c) { return !std::isdigit(c); }) == s.end();
     //Source of this function:
     //https://stackoverflow.com/questions/4654636/how-to-determine-if-a-string-is-a-number-with-c
 }
 
+//writes contents of the command list to the file
 void writetofile(){
     std::ofstream file;
     file.open(filename);
@@ -178,12 +229,14 @@ void writetofile(){
     file.close();
 }
 
+//prints all of the lines
 void printcontents(){
     for(std::map<uint32_t, std::string>::const_iterator iter = commandList.begin(); iter != commandList.end(); ++iter){
         std::cout << iter->first << " " << iter->second << std::endl;
     }
 }
 
+//converts the string to a uint32_t
 uint32_t strtoint(std::string s){
     std::stringstream ss(s);
     uint32_t num;
@@ -191,6 +244,7 @@ uint32_t strtoint(std::string s){
     return num;
 }
 
+//fills the command list with what's already in the file
 void populatecommandlist(){
     std::ifstream file;
     file.open(filename);
