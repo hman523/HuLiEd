@@ -154,9 +154,13 @@ void interpret(std::string words, Mode * mode){
     if(command[0] == "print"){
         int firstspace = command[1].find(' ');
         if(firstspace == -1){
-            std::string commandAtThisPoint = commandList[strtoint(command[1])];
-            if(commandAtThisPoint != "")
+            try {
+                std::string commandAtThisPoint = commandList.at(strtoint(command[1]));
                 std::cout << command[1] << " " << commandAtThisPoint << std::endl;
+            }
+            catch (...){
+                std::cout << "Line does not exist" << std::endl;
+            }
         }
         else{
             uint32_t lower, upper;
@@ -168,9 +172,13 @@ void interpret(std::string words, Mode * mode){
                 return;
             }
             for(uint32_t x = lower; x <= upper; ++x){
-                std::string commandAtThisPoint = commandList[x];
-                if(commandAtThisPoint != "")
+                try{
+                    std::string commandAtThisPoint = commandList.at(x);
                     std::cout << x << " " << commandAtThisPoint << std::endl;
+                }
+                catch (...){
+                    //do nothing
+                }
             }
         }
         return;
@@ -181,9 +189,15 @@ void interpret(std::string words, Mode * mode){
         int firstspace = command[1].find(' ');
         if(firstspace == -1){
             if(isNumber(command[1])){
-                uint32_t index = strtoint(command[1]);
-                commandList.erase(index);
-                std::cout << "Deleted line " << index << std::endl;
+                try{
+                    uint32_t index = strtoint(command[1]);
+
+                    commandList.erase(index);
+                    std::cout << "Deleted line " << index << std::endl;
+                }
+                catch(...){
+
+                }
             }
             return;
         }
@@ -198,10 +212,13 @@ void interpret(std::string words, Mode * mode){
             }
             std::cout << "Deleting: ";
             for(uint32_t x = lower; x <= upper; ++x) {
-                std::string commandAtThisPoint = commandList[x];
-                commandList.erase(x);
-                if (commandAtThisPoint != ""){
+                try{
+                    std::string commandAtThisPoint = commandList.at(x);
+                    commandList.erase(x);
                     std::cout << x << ", ";
+                }
+                catch (...){
+
                 }
             }
             std::cout << std::endl;
