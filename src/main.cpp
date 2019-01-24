@@ -56,7 +56,7 @@ void populatecommandlist();
 
 
 int main(int argc, char *argv[]) {
-    std::cout << "hulied v0.9" << std::endl;
+    std::cout << "hulied v1.0" << std::endl;
     checkValidInputs(argc);
     setupmap();
     filename = argv[1];
@@ -113,7 +113,7 @@ void interpret(std::string words, Mode * mode){
         << "To write to the file at any time, type save. To print all the lines, type print.\n"
         << "You can also use print followed by a number to print that line or two numbers to print the range.\n"
         << "To add a new line or overwrite a line while in write mode, type the line number then the line.\n"
-        << "To delete a line, type delete then the line number.\n"
+        << "To delete a line, type delete then the line number or two numbers to delete the range.\n"
         << "To quit this program, type either q or quit.\n"
         << std::endl;
         return;
@@ -150,16 +150,6 @@ void interpret(std::string words, Mode * mode){
         return;
     }
 
-    //this is used for deleting
-    if(*mode == d && command[0] == "delete"){
-        if(isNumber(command[1])){
-            uint32_t index = strtoint(command[1]);
-            commandList.erase(index);
-            std::cout << "Deleted line " << index << std::endl;
-        }
-        return;
-    }
-
     //this is for printing either 1 or a range of lines
     if(command[0] == "print"){
         int firstspace = command[1].find(' ');
@@ -186,8 +176,41 @@ void interpret(std::string words, Mode * mode){
         return;
     }
 
+    //used for deleting
+    if(*mode == d && command[0] == "delete"){
+        int firstspace = command[1].find(' ');
+        if(firstspace == -1){
+            if(isNumber(command[1])){
+                uint32_t index = strtoint(command[1]);
+                commandList.erase(index);
+                std::cout << "Deleted line " << index << std::endl;
+            }
+            return;
+        }
+        else{
+            uint32_t lower, upper;
+            auto temp = split(command[1]);
+            lower = strtoint(temp[0]);
+            upper = strtoint(temp[1]);
+            if(lower > upper){
+                std::cout << "Range out of order" << std::endl;
+                return;
+            }
+            std::cout << "Deleting: ";
+            for(uint32_t x = lower; x <= upper; ++x) {
+                std::string commandAtThisPoint = commandList[x];
+                commandList.erase(x);
+                if (commandAtThisPoint != ""){
+                    std::cout << x << ", ";
+                }
+            }
+            std::cout << std::endl;
+        }
+        return;
+    }
 
-
+    std::cout << "?" << std::endl;
+    return;
 }
 
 //simple method for spliting the command and its parameter
