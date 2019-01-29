@@ -1,6 +1,6 @@
 /**
  * Author: Stephen Hunter Barbella (hman523)
- * Date: 1/23/19
+ * Date: 1/29/19
  * Licence: MIT
  */
 
@@ -15,7 +15,7 @@
 //ENUM: Mode
 //Essentially the state you are in
 //Modes: read, write, append, delete
-enum Mode {r, w, a, d};
+enum Mode {r, w, a, d, s};
 //modemap essentially maps the modes to strings that they are equivelent to
 std::map<std::string, Mode> modemap;
 //command list is where all the lines you write are held
@@ -53,10 +53,16 @@ uint32_t strtoint(std::string s);
 //populatecommandlist: fills the command list with what is in the file already
 void populatecommandlist();
 
+//shift: shifts all lines down however many lines are specified
+void shift(uint32_t offset);
+
+//shift: shifts all lines down however many lines are specified starting at start
+void shift(uint32_t offset, uint32_t start);
+
 
 
 int main(int argc, char *argv[]) {
-    std::cout << "hulied v1.0" << std::endl;
+    std::cout << "hulied v1.1" << std::endl;
     checkValidInputs(argc);
     setupmap();
     filename = argv[1];
@@ -107,13 +113,15 @@ void interpret(std::string words, Mode * mode){
     //prints the help statement
     if(words == "help"){
         std::cout << "Welcome to Hunter's Line Editor, or hulied (pronounced who lied).\n"
-        << "There are 4 modes available: read(r), write(w), append(a), or delete(d).\n"
+        << "There are 5 modes available: read(r), write(w), append(a), delete(d), or shift(s).\n"
         << "To change modes, type mode followed by one of the mode letters.\n"
         << "The difference between write and append is write will overwrite lines that exist while append won't.\n"
         << "To write to the file at any time, type save. To print all the lines, type print.\n"
         << "You can also use print followed by a number to print that line or two numbers to print the range.\n"
         << "To add a new line or overwrite a line while in write mode, type the line number then the line.\n"
         << "To delete a line, type delete then the line number or two numbers to delete the range.\n"
+        << "To shift all the lines, go into shift mode and type shift then how many lines you want to offset."
+        << "To shift all lines after a certain point, type shift then the offset then the starting line.\n"
         << "To quit this program, type either q or quit.\n"
         << std::endl;
         return;
@@ -184,6 +192,22 @@ void interpret(std::string words, Mode * mode){
         return;
     }
 
+    //this is for shifting either all or starting at a point of lines
+    if(*mode == s && command[0] == "shift"){
+        int firstspace = command[1].find(' ');
+        if(firstspace == -1){
+            shift(strtoint(command[1]));
+        }
+        else{
+            uint32_t first, second;
+            auto temp = split(command[1]);
+            first = strtoint(temp[0]);
+            second = strtoint(temp[1]);
+            shift(first, second);
+        }
+        return;
+    }
+
     //used for deleting
     if(*mode == d && command[0] == "delete"){
         int firstspace = command[1].find(' ');
@@ -250,6 +274,7 @@ void setupmap(){
     modemap.insert(std::pair<std::string, Mode>("w", w));
     modemap.insert(std::pair<std::string, Mode>("a", a));
     modemap.insert(std::pair<std::string, Mode>("d", d));
+    modemap.insert(std::pair<std::string, Mode>("s", s));
 }
 
 //simple function to test if this string is a number
@@ -302,4 +327,24 @@ void populatecommandlist(){
         commandList.insert(std::pair<uint32_t, std::string>(x, y));
     }
 
+}
+
+void shift(uint32_t offset){
+    std::map<uint32_t, std::string> temp;
+    for(auto iter = commandList.begin(); iter != commandList.end(); ++iter){
+        temp.insert(std::pair<uint32_t, std::string>(iter->first + offset, iter->second));
+    }
+    std::swap(temp, commandList);
+}
+
+void shift(uint32_t offset, uint32_t start){
+    std::map<uint32_t, std::string> temp;
+    auto pivotpoint = commandList.lower_bound(start);
+    for(auto iter = commandList.begin(); iter != pivotpoint; ++iter){
+        temp.insert(std::pair<uint32_t, std::string>(iter->first, iter->second));
+    }
+    for(auto iter = pivotpoint; iter != commandList.end(); ++iter){
+        temp.insert(std::pair<uint32_t, std::string>(iter->first + offset, iter->second));
+    }
+    std::swap(temp, commandList);
 }
