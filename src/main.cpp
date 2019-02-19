@@ -34,10 +34,10 @@ std::string filename;
 bool basicMode = false;
 
 // verNum: the version number
-const float verNum = 1.9;
+const std::string verNum = "2.0";
 
 // prompt: the prompt on the cli
-const std::string prompt = ">";
+std::string prompt = ">";
 
 // Methods
 
@@ -81,7 +81,14 @@ void turnBasicModeOn();
 // turnBasicModeOff: turns basic mode (line numbers in file) off
 void turnBasicModeOff();
 
+// detectAndSetBasicMode: used to check if the file is a numbered file
 bool detectAndSetBasicMode();
+
+// setPrompt: used to change the prompt
+void setPrompt(std::string newPrompt);
+
+// printHelp: prints help statement
+void printHelp();
 
 int main(int argc, char *argv[]) {
   std::cout << "hulied v" << verNum << std::endl;
@@ -117,6 +124,7 @@ void interpret(std::string words, Mode *mode) {
 
   // for empty string edge condition
   if (words == "") {
+    std::cout << "?" << std::endl;
     return;
   }
 
@@ -134,31 +142,7 @@ void interpret(std::string words, Mode *mode) {
 
   // prints the help statement
   if (words == "help") {
-    std::cout
-        << "Welcome to Hunter's Line Editor, or hulied (pronounced who lied).\n"
-        << "There are 5 modes available: read(r), write(w), append(a), "
-           "delete(d), or shift(s).\n"
-        << "To change modes, type mode followed by one of the mode letters.\n"
-        << "To turn on line mode (AKA Basic mode), type lines on.\n"
-        << "To do the opposite, type lines off. The default when you turn it "
-           "on is off.\n"
-        << "The difference between write and append is write will overwrite "
-           "lines that exist while append won't.\n"
-        << "To write to the file at any time, type save. To print all the "
-           "lines, type print.\n"
-        << "You can also use print followed by a number to print that line or "
-           "two numbers to print the range.\n"
-        << "To add a new line or overwrite a line while in write mode, type "
-           "the line number then the line.\n"
-        << "To delete a line, type delete then the line number or two numbers "
-           "to delete the range.\n"
-        << "To shift all the lines, go into shift mode and type shift then how "
-           "many lines you want to offset."
-        << "To shift all lines after a certain point, type shift then the "
-           "offset then the starting line.\n"
-        << "To quit this program, type either q or quit.\n"
-        << std::endl;
-    return;
+    printHelp();
   }
 
   // Now we split the input into command and parameter
@@ -187,6 +171,11 @@ void interpret(std::string words, Mode *mode) {
       *mode = modemap[command[1]];
     }
     std::cout << "Mode changed to " << *mode << std::endl;
+    return;
+  }
+
+  if (command[0] == "prompt") {
+    setPrompt(command[1]);
     return;
   }
 
@@ -364,6 +353,7 @@ uint32_t strtoint(std::string s) {
 
 // fills the command list with what's already in the file
 void populatecommandlist() {
+  detectAndSetBasicMode();
   std::ifstream file;
   file.open(filename);
   if (basicMode) {
@@ -380,12 +370,12 @@ void populatecommandlist() {
       commandList.insert(std::pair<uint32_t, std::string>(x, y));
     }
   } else {
-      std::string line;
-      uint32_t lineNum = 1;
-      while(std::getline(file, line)){
-        commandList.insert(std::pair<uint32_t, std::string>(lineNum, line));
-        ++lineNum;
-      }
+    std::string line;
+    uint32_t lineNum = 1;
+    while (std::getline(file, line)) {
+      commandList.insert(std::pair<uint32_t, std::string>(lineNum, line));
+      ++lineNum;
+    }
   }
 }
 
@@ -415,14 +405,51 @@ void turnBasicModeOn() { basicMode = true; }
 
 void turnBasicModeOff() { basicMode = false; }
 
-bool detectAndSetBasicMode(){
-    std::ifstream file;
-    file.open(filename);
-    uint32_t x;
-    try {
-        (file >> x);
-    }
-    catch(...){
+bool detectAndSetBasicMode() {
+  std::ifstream file;
+  file.open(filename);
+  char x;
+  file >> x;
+  if (x >= '0' && x <= '9') {
+    turnBasicModeOn();
+  } else {
+    turnBasicModeOff();
+  }
+  if (basicMode) {
+    std::cout << "Line mode on" << std::endl;
+  } else {
+    std::cout << "Line mode off" << std::endl;
+  }
+  return basicMode;
+}
 
-    }
+void setPrompt(std::string newPrompt) { prompt = newPrompt; }
+
+void printHelp() {
+  std::cout
+      << "Welcome to Hunter's Line Editor, or hulied (pronounced who lied).\n"
+      << "There are 5 modes available: read(r), write(w), append(a), "
+         "delete(d), or shift(s).\n"
+      << "To change the prompt, type prompt then the new prompt.\n"
+      << "To change modes, type mode followed by one of the mode letters.\n"
+      << "To turn on line mode (AKA Basic mode), type lines on.\n"
+      << "To do the opposite, type lines off. The default when you turn it "
+         "on is off.\n"
+      << "The difference between write and append is write will overwrite "
+         "lines that exist while append won't.\n"
+      << "To write to the file at any time, type save. To print all the "
+         "lines, type print.\n"
+      << "You can also use print followed by a number to print that line or "
+         "two numbers to print the range.\n"
+      << "To add a new line or overwrite a line while in write mode, type "
+         "the line number then the line.\n"
+      << "To delete a line, type delete then the line number or two numbers "
+         "to delete the range.\n"
+      << "To shift all the lines, go into shift mode and type shift then how "
+         "many lines you want to offset."
+      << "To shift all lines after a certain point, type shift then the "
+         "offset then the starting line.\n"
+      << "To quit this program, type either q or quit.\n"
+      << std::endl;
+  return;
 }
