@@ -11,10 +11,6 @@
 #include <sstream>
 #include <vector>
 
-// Things to add
-// detecting files with line numbers and turn on the right mode
-// Set prompt option
-
 // Global variables
 // ENUM: Mode
 // Essentially the state you are in
