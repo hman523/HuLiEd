@@ -31,7 +31,7 @@ std::string filename;
 bool basicMode = false;
 
 // verNum: the version number
-const std::string verNum = "2.0.1";
+const std::string verNum = "2.0.2";
 
 // prompt: the prompt on the cli
 std::string prompt = ">";
@@ -136,6 +136,7 @@ void interpret(std::string words, Mode *mode) {
   // prints the help statement
   if (words == "help") {
     printHelp();
+    return;
   }
 
   // Now we split the input into command and parameter
