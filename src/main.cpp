@@ -12,13 +12,14 @@
 #include <vector>
 
 // Global variables
-// ENUM: Mode
 // Essentially the state you are in
 // Modes: read, write, append, delete, shift
-enum Mode { r, w, a, d, s };
-
-// modemap essentially maps the modes to strings that they are equivelent to
-std::map<std::string, Mode> modemap;
+typedef char Mode;
+const Mode R = 'r';
+const Mode W = 'w';
+const Mode A = 'a';
+const Mode D = 'd';
+const Mode S = 's';
 
 // command list is where all the lines you write are held
 std::map<uint32_t, std::string> commandList;
@@ -45,9 +46,6 @@ void checkValidInputs(int argcount);
 
 // Split: splits the string into the command and the parameter
 std::vector<std::string> split(std::string words);
-
-// setupmap: Sets up the mode map and populates it
-void setupmap();
 
 // isNumber: returns if the string is a number or not
 bool isNumber(std::string s);
@@ -89,11 +87,10 @@ void printHelp();
 int main(int argc, char *argv[]) {
   std::cout << "hulied v" << verNum << std::endl;
   checkValidInputs(argc);
-  setupmap();
   filename = argv[1];
   Mode *m = new Mode;
   // default mode is read
-  *m = r;
+  *m = R;
   populatecommandlist();
   // interpretation loop
   while (true) {
@@ -164,7 +161,7 @@ void interpret(std::string words, Mode *mode) {
       //*mode = command[1];
       std::cout << "Still need to implement this feature" << std::endl;
     } else {
-      *mode = modemap[command[1]];
+      *mode = command[1][0];
     }
     std::cout << "Mode changed to " << *mode << std::endl;
     return;
@@ -176,14 +173,14 @@ void interpret(std::string words, Mode *mode) {
   }
 
   // this is used when inserting a line in append mode
-  if (*mode == a && isNumber(command[0])) {
+  if (*mode == A && isNumber(command[0])) {
     commandList.insert(
         std::pair<uint32_t, std::string>(strtoint(command[0]), command[1]));
     return;
   }
 
   // This is used when writing a line while in write mode
-  if (*mode == w && isNumber(command[0])) {
+  if (*mode == W && isNumber(command[0])) {
     uint32_t index = strtoint(command[0]);
     if (commandList.count(index) != 0)
       commandList.erase(index);
@@ -223,7 +220,7 @@ void interpret(std::string words, Mode *mode) {
   }
 
   // this is for shifting either all or starting at a point of lines
-  if (*mode == s && command[0] == "shift") {
+  if (*mode == S && command[0] == "shift") {
     int firstspace = command[1].find(' ');
     if (firstspace == -1) {
       shift(strtoint(command[1]));
@@ -238,7 +235,7 @@ void interpret(std::string words, Mode *mode) {
   }
 
   // used for deleting
-  if (*mode == d && command[0] == "delete") {
+  if (*mode == D && command[0] == "delete") {
     int firstspace = command[1].find(' ');
     if (firstspace == -1) {
       if (isNumber(command[1])) {
@@ -290,15 +287,6 @@ std::vector<std::string> split(std::string words) {
   temp.push_back(words.substr(0, firstspace));
   temp.push_back(words.substr(firstspace + 1));
   return temp;
-}
-
-// maps a string to the enum that it represents
-void setupmap() {
-  modemap.insert(std::pair<std::string, Mode>("r", r));
-  modemap.insert(std::pair<std::string, Mode>("w", w));
-  modemap.insert(std::pair<std::string, Mode>("a", a));
-  modemap.insert(std::pair<std::string, Mode>("d", d));
-  modemap.insert(std::pair<std::string, Mode>("s", s));
 }
 
 // simple function to test if this string is a number
