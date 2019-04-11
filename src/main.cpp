@@ -31,7 +31,7 @@ std::string filename;
 bool basicMode = false;
 
 // verNum: the version number
-const std::string verNum = "2.0";
+const std::string verNum = "2.0.1";
 
 // prompt: the prompt on the cli
 std::string prompt = ">";
